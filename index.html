@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pathlab Clinic Billing Prototype</title>
+  <style>
+    :root {
+      --bg: #f3f6fb;
+      --panel: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --brand: #0ea5a4;
+      --brand-dark: #0b7f7f;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --ok: #16a34a;
+      --chip-pending-bg: #fef3c7;
+      --chip-pending-text: #92400e;
+      --chip-approved-bg: #dcfce7;
+      --chip-approved-text: #166534;
+      --chip-rejected-bg: #fee2e2;
+      --chip-rejected-text: #991b1b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .brand {
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .nav-btn {
+      width: 100%;
+      text-align: left;
+      padding: 10px 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+    }
+
+    .nav-btn.active,
+    .nav-btn:hover {
+      background: rgba(14, 165, 164, 0.2);
+      border-color: rgba(14, 165, 164, 0.5);
+    }
+
+    .main {
+      padding: 24px;
+    }
+
+    .topbar {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+    label {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.2px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 10px 11px;
+      font-size: 14px;
+      background: white;
+    }
+
+    textarea { min-height: 80px; resize: vertical; }
+
+    .dropzone {
+      border: 2px dashed #94a3b8;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 13px;
+      color: #334155;
+      background: #f8fafc;
+    }
+
+    .btn-row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; }
+
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-primary { background: var(--brand); color: white; }
+    .btn-primary:hover { background: var(--brand-dark); }
+    .btn-secondary { background: #e2e8f0; color: #0f172a; }
+    .btn-danger { background: var(--danger); color: white; }
+
+    .kpi {
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    .kpi .value { font-size: 24px; font-weight: 700; }
+    .kpi .label { color: var(--muted); font-size: 12px; }
+
+    .chip {
+      display: inline-flex;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .pending { background: var(--chip-pending-bg); color: var(--chip-pending-text); }
+    .approved { background: var(--chip-approved-bg); color: var(--chip-approved-text); }
+    .rejected { background: var(--chip-rejected-bg); color: var(--chip-rejected-text); }
+
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { border-bottom: 1px solid var(--line); padding: 10px; text-align: left; }
+    th { color: var(--muted); font-size: 12px; text-transform: uppercase; }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 14px;
+    }
+
+    .timeline {
+      border-left: 3px solid #cbd5e1;
+      padding-left: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .muted { color: var(--muted); }
+
+    @media (max-width: 1100px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { position: relative; height: auto; }
+      .grid-4, .grid-3, .grid-2, .split { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">PATHLAB Prototype</div>
+      <button class="nav-btn active" data-target="clinic">Clinic Submission</button>
+      <button class="nav-btn" data-target="verify">Verification</button>
+      <button class="nav-btn" data-target="finance">Finance</button>
+      <button class="nav-btn" data-target="sla">SLA Dashboard</button>
+      <button class="nav-btn" data-target="audit">Audit Trail</button>
+      <div class="muted" style="margin-top:auto;font-size:12px;">Demo UI for workflow alignment</div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <strong>Panel Clinic Billing System</strong><br />
+          <span class="muted">Three-way match: Form + Result + Invoice</span>
+        </div>
+        <div class="muted">Date: 27 Apr 2026</div>
+      </div>
+
+      <section id="clinic" class="screen active">
+        <div class="card">
+          <h3 style="margin-top:0">New Case Submission</h3>
+          <div class="grid-2">
+            <div><label>Patient Reference ID *</label><input value="P-2026-00192"></div>
+            <div><label>Service Date *</label><input type="date" value="2026-04-27"></div>
+            <div><label>Service Type *</label><select><option>X-Ray</option><option>ECG</option></select></div>
+            <div><label>Corporate Client *</label><input value="ABC Manufacturing"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="margin-top:0">Required Documents</h3>
+          <div class="grid-3">
+            <div class="dropzone">Lab Form*<br><small class="muted">Drag & drop PDF</small></div>
+            <div class="dropzone">Diagnostic Result*<br><small class="muted">Drag & drop PDF</small></div>
+            <div class="dropzone">Clinic Invoice + e-Invoice*<br><small class="muted">Drag & drop PDF</small></div>
+          </div>
+          <p class="muted">Validation: 3 of 3 documents required before submit.</p>
+        </div>
+
+        <div class="card">
+          <div class="grid-2">
+            <div><label>Invoice Number *</label><input value="INV-ACB-2391"></div>
+            <div><label>Invoice Amount (RM) *</label><input value="120.00"></div>
+          </div>
+          <label>Remarks</label><textarea>Patient referred by corporate panel claim.</textarea>
+          <div class="btn-row">
+            <button class="btn btn-secondary">Save Draft</button>
+            <button class="btn btn-primary">Submit Case</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="verify" class="screen">
+        <div class="card">
+          <h3 style="margin-top:0">Verification Queue</h3>
+          <div class="grid-4">
+            <div class="kpi"><div class="value">124</div><div class="label">Pending</div></div>
+            <div class="kpi"><div class="value">18</div><div class="label">Due Today</div></div>
+            <div class="kpi"><div class="value">9</div><div class="label">SLA Late</div></div>
+            <div class="kpi"><div class="value">6</div><div class="label">Amount Mismatch</div></div>
+          </div>
+        </div>
+
+        <div class="card split">
+          <div>
+            <h4 style="margin-top:0">Case C-1001</h4>
+            <div class="dropzone" style="height:240px;display:flex;align-items:center;justify-content:center;">PDF Preview Area</div>
+            <p class="muted">Tabs: Lab Form | Result | Invoice</p>
+          </div>
+          <div>
+            <h4 style="margin-top:0">Validation Panel</h4>
+            <table>
+              <tr><td>Lab Form present</td><td>✅</td></tr>
+              <tr><td>Diagnostic Result present</td><td>✅</td></tr>
+              <tr><td>Invoice + e-Invoice</td><td>✅</td></tr>
+              <tr><td>Rate vs SLA</td><td style="color:#b45309">⚠ RM120 vs RM100</td></tr>
+              <tr><td>Duplicate claim check</td><td>✅</td></tr>
+            </table>
+            <label style="margin-top:10px">Verifier Notes</label>
+            <textarea>Amount mismatch needs clinic clarification.</textarea>
+            <div class="btn-row">
+              <button class="btn btn-danger">Reject</button>
+              <button class="btn btn-secondary">Request Info</button>
+              <button class="btn btn-primary">Approve</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="finance" class="screen">
+        <div class="card">
+          <h3 style="margin-top:0">Finance Payment Queue</h3>
+          <div class="grid-3">
+            <div class="kpi"><div class="value">86</div><div class="label">Ready for Payment</div></div>
+            <div class="kpi"><div class="value">RM 142,330</div><div class="label">Pending Amount</div></div>
+            <div class="kpi"><div class="value">11</div><div class="label">SLA Violations</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <table>
+            <thead>
+              <tr><th></th><th>Case ID</th><th>Clinic</th><th>Invoice #</th><th>Amount</th><th>Verified By</th><th>Status</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><input type="checkbox"></td><td>C-1001</td><td>ABC Clinic</td><td>INV-9281</td><td>120.00</td><td>Sarah</td><td><span class="chip approved">Ready</span></td><td><button class="btn btn-primary">Pay</button></td></tr>
+              <tr><td><input type="checkbox"></td><td>C-1012</td><td>Klinik Maju</td><td>INV-9322</td><td>310.00</td><td>Sarah</td><td><span class="chip approved">Ready</span></td><td><button class="btn btn-primary">Pay</button></td></tr>
+              <tr><td><input type="checkbox"></td><td>C-1019</td><td>CarePlus</td><td>INV-9360</td><td>240.00</td><td>Sarah</td><td><span class="chip pending">Pending</span></td><td><button class="btn btn-secondary">View</button></td></tr>
+            </tbody>
+          </table>
+          <div class="btn-row">
+            <button class="btn btn-secondary">Export CSV</button>
+            <button class="btn btn-primary">Bulk Mark Paid</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="sla" class="screen">
+        <div class="card">
+          <h3 style="margin-top:0">SLA & Compliance Overview</h3>
+          <div class="grid-4">
+            <div class="kpi"><div class="value">87%</div><div class="label">On-Time Submission</div></div>
+            <div class="kpi"><div class="value">6%</div><div class="label">Missing Docs Rate</div></div>
+            <div class="kpi"><div class="value">4%</div><div class="label">Mismatch Rate</div></div>
+            <div class="kpi"><div class="value">1.8d</div><div class="label">Avg Verification Time</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h4 style="margin-top:0">Top Risk Clinics</h4>
+          <table>
+            <thead><tr><th>Clinic</th><th>Late %</th><th>Missing Docs %</th><th>Mismatch %</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td>Klinik XYZ</td><td>22%</td><td>14%</td><td>9%</td><td>Issue SLA Warning</td></tr>
+              <tr><td>ABC Clinic</td><td>11%</td><td>8%</td><td>3%</td><td>Monitor</td></tr>
+              <tr><td>CarePlus</td><td>8%</td><td>4%</td><td>2%</td><td>Stable</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="audit" class="screen">
+        <div class="card">
+          <h3 style="margin-top:0">Audit Trail - Case C-1001</h3>
+          <div class="timeline">
+            <div><strong>02 Apr 2026 10:12</strong> — Clinic uploaded Lab Form</div>
+            <div><strong>02 Apr 2026 10:13</strong> — Clinic uploaded Diagnostic Result</div>
+            <div><strong>02 Apr 2026 10:14</strong> — Clinic uploaded Invoice + e-Invoice</div>
+            <div><strong>03 Apr 2026 09:01</strong> — Automated rule check passed</div>
+            <div><strong>04 Apr 2026 15:41</strong> — Sarah requested clarification (amount mismatch)</div>
+            <div><strong>05 Apr 2026 11:20</strong> — Clinic re-uploaded corrected invoice</div>
+            <div><strong>07 Apr 2026 09:40</strong> — Sarah approved</div>
+            <div><strong>08 Apr 2026 16:20</strong> — Finance marked paid</div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-secondary">Download Audit Log</button>
+            <button class="btn btn-primary">Open File Versions</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const buttons = document.querySelectorAll('.nav-btn');
+    const screens = document.querySelectorAll('.screen');
+
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        buttons.forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        const target = btn.getAttribute('data-target');
+        screens.forEach((screen) => {
+          screen.classList.toggle('active', screen.id === target);
+        });
+      });
+    });
+  </script>
+</body>
+</html>
